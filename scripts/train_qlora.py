@@ -38,7 +38,7 @@ def main() -> int:
 
 def _train(settings: QLoRASettings) -> None:
     try:
-        import torch
+        import torch  # type: ignore[import-not-found]
         from datasets import load_dataset  # type: ignore[import-not-found]
         from peft import LoraConfig  # type: ignore[import-not-found]
         from transformers import (  # type: ignore[import-not-found]

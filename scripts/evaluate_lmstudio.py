@@ -67,8 +67,8 @@ def main() -> int:
     metadata = {
         "model": args.model,
         "base_url": args.base_url,
-        "dataset": str(args.dataset),
-        "predictions": str(args.output),
+        "dataset": _display_path(args.dataset),
+        "predictions": _display_path(args.output),
         "prompt_mode": prompt_mode,
     }
     write_evaluation_report(
@@ -98,6 +98,13 @@ def _print_dry_run(records: list[SFTRecord], prompt_mode: PromptMode) -> None:
     print("Dry run prompt:")
     for message in build_prompt_messages(records[0], prompt_mode):
         print(f"{message['role']}: {message['content']}")
+
+
+def _display_path(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
 
 
 if __name__ == "__main__":

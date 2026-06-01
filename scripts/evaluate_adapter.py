@@ -78,7 +78,7 @@ def _evaluate_adapter(
         raise RuntimeError(f"Adapter path does not exist: {adapter_path}")
 
     try:
-        import torch
+        import torch  # type: ignore[import-not-found]
         from peft import PeftModel  # type: ignore[import-not-found]
         from transformers import (  # type: ignore[import-not-found]
             AutoModelForCausalLM,
@@ -137,8 +137,8 @@ def _evaluate_adapter(
     ]
     metadata = {
         "model": settings.model.model_name_or_path,
-        "adapter_path": str(adapter_path),
-        "dataset": str(dataset_path),
+        "adapter_path": _display_path(adapter_path),
+        "dataset": _display_path(dataset_path),
         "prompt_mode": prompt_mode,
     }
     write_evaluation_report(
@@ -160,6 +160,13 @@ def _resolve_path(path: Path) -> Path:
     if path.is_absolute():
         return path
     return ROOT / path
+
+
+def _display_path(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
 
 
 def _torch_dtype(torch_module: Any, name: str) -> Any:
