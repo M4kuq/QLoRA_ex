@@ -157,3 +157,54 @@ treated as promising but not clean.
 Try `loss_mode: assistant_only` with the original conversational `messages` dataset. That should
 avoid the prompt/completion conversion path that produced tokenization mismatch warnings while
 still masking user/system tokens out of the loss.
+
+## 2026-06-01: Assistant-only loss adapter evaluation
+
+The completion-only checkpoint was kept as a Git tag and a local adapter backup before this run:
+
+```text
+git tag: qlora-checkpoint100-completion-only
+local backup: adapters/backups/qwen35-4b-json-plan-completion-only-checkpoint100-20260601
+```
+
+A third 100-step QLoRA run was trained with `loss_mode: assistant_only`:
+
+```text
+python scripts/train_qlora.py --config configs/qlora_qwen_assistant_only.yaml
+```
+
+The trained adapter was saved to:
+
+```text
+adapters/qwen35-4b-json-plan-assistant-only
+```
+
+It was evaluated on the full `data/generated/test.jsonl` split.
+
+| metric | full-sequence checkpoint-100 | completion-only checkpoint-100 | assistant-only checkpoint-100 |
+| --- | ---: | ---: | ---: |
+| total | 200 | 200 | 200 |
+| json_parse_rate | 0.9700 | 0.9550 | 0.9050 |
+| schema_valid_rate | 0.9450 | 0.7650 | 0.5800 |
+| intent_accuracy | 0.8600 | 0.7650 | 0.5750 |
+| target_accuracy | 0.8600 | 0.7650 | 0.5750 |
+| filter_exact_match_rate | 0.5950 | 0.7100 | 0.5450 |
+| filter_key_precision | 0.8254 | 0.7429 | 0.5708 |
+| filter_key_recall | 0.7594 | 0.7396 | 0.5692 |
+| sort_accuracy | 0.7700 | 0.7350 | 0.5600 |
+| limit_accuracy | 0.6050 | 0.5950 | 0.4600 |
+| exact_match_rate | 0.3300 | 0.5300 | 0.4200 |
+
+### Interpretation
+
+Assistant-only training avoided the prompt/completion tokenization mismatch warnings seen in the
+completion-only run, but it underperformed both prior adapters. It frequently generated English
+reasoning before the JSON, which drove schema validity down to 58.0%. The best current candidate
+for exact-match accuracy remains completion-only, while the best current candidate for reliable
+schema-valid JSON remains full-sequence.
+
+### Next Step
+
+The next useful experiment is generation control rather than another masking mode: evaluate the
+completion-only adapter with stricter decoding and/or a JSON extraction-first postprocess, then
+compare whether schema validity can be recovered without losing its higher exact-match rate.
