@@ -26,3 +26,15 @@ def test_load_completion_only_qlora_settings() -> None:
     assert settings.training.adapter_output_dir == Path(
         "adapters/qwen35-4b-json-plan-completion-only"
     )
+
+
+def test_load_assistant_only_qlora_settings() -> None:
+    config_path = Path("configs/qlora_qwen_assistant_only.yaml")
+
+    settings = load_qlora_settings(config_path)
+
+    assert settings.training.loss_mode == "assistant_only"
+    assert settings.training.output_dir == Path("outputs/qwen35-4b-qlora-assistant-only")
+    assert settings.training.adapter_output_dir == Path(
+        "adapters/qwen35-4b-json-plan-assistant-only"
+    )
