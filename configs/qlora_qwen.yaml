@@ -26,6 +26,7 @@ quantization:
 training:
   output_dir: outputs/qwen35-4b-qlora
   adapter_output_dir: adapters/qwen35-4b-json-plan
+  max_steps: 100
   num_train_epochs: 2
   per_device_train_batch_size: 1
   gradient_accumulation_steps: 8

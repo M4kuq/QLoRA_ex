@@ -10,5 +10,6 @@ def test_load_qlora_settings_from_yaml() -> None:
 
     assert settings.model.model_name_or_path == "Qwen/Qwen3.5-4B"
     assert settings.lora.r == 16
+    assert settings.training.max_steps == 100
     assert settings.quantization.load_in_4bit is True
     assert settings.dataset.train_path == Path("data/generated/train.jsonl")

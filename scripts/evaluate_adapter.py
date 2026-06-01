@@ -108,7 +108,7 @@ def _evaluate_adapter(
         trust_remote_code=settings.model.trust_remote_code,
         dtype=torch_dtype,
     )
-    model = PeftModel.from_pretrained(model, adapter_path)
+    model = cast(Any, PeftModel.from_pretrained(model, adapter_path))
     tokenizer = AutoTokenizer.from_pretrained(
         settings.model.model_name_or_path,
         trust_remote_code=settings.model.trust_remote_code,
@@ -127,7 +127,7 @@ def _evaluate_adapter(
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
         generated_ids = model.generate(**inputs, max_new_tokens=max_new_tokens)
         output_ids = generated_ids[0][len(inputs.input_ids[0]) :]
-        raw_output = tokenizer.decode(output_ids, skip_special_tokens=True)
+        raw_output = cast(str, tokenizer.decode(output_ids, skip_special_tokens=True))
         results.append(build_prediction_result(index=index, record=record, raw_output=raw_output))
 
     summary = evaluate_predictions(results)

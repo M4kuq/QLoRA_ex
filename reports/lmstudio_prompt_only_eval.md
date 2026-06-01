@@ -13,7 +13,7 @@
 | metric | value |
 | --- | ---: |
 | total | 20 |
-| json_parse_rate | 0.3000 |
+| json_parse_rate | 0.3500 |
 | schema_valid_rate | 0.2000 |
 | intent_accuracy | 0.2000 |
 | target_accuracy | 0.2000 |
@@ -29,7 +29,13 @@
 ### Example 0
 
 - user: まだ着手していない佐藤さんに割り当てられている中優先度の期限切れのタスクを締切が近い順で10件だけリストアップして
-- error: assistant content is not valid JSON: Expecting value: line 5 column 20 (char 100)
+- error: assistant content does not match OperationPlan: 2 validation errors for OperationPlan
+intent
+  Field required [type=missing, input_value={}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+target
+  Field required [type=missing, input_value={}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
 
 ```text
 Thinking Process:
@@ -151,3 +157,4 @@ Let me construct the JSON response without any markdown or explanations as instr
   "limit": 20
 }
 ```
+

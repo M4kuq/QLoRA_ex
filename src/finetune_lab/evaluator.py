@@ -66,6 +66,10 @@ def load_sft_records(path: Path, *, limit: int | None = None) -> list[SFTRecord]
 
 
 def extract_json_candidate(raw_output: str) -> str:
+    candidates = extract_json_candidates(raw_output)
+    if candidates:
+        return candidates[0]
+
     stripped = raw_output.strip()
     if stripped.startswith("```"):
         lines = stripped.splitlines()
@@ -82,19 +86,45 @@ def extract_json_candidate(raw_output: str) -> str:
     return stripped[start : end + 1]
 
 
+def extract_json_candidates(raw_output: str) -> list[str]:
+    stripped = raw_output.strip()
+    if stripped.startswith("```"):
+        lines = stripped.splitlines()
+        if lines and lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        stripped = "\n".join(lines).strip()
+
+    decoder = json.JSONDecoder()
+    candidates: list[str] = []
+    for start, char in enumerate(stripped):
+        if char != "{":
+            continue
+        try:
+            _, end = decoder.raw_decode(stripped[start:])
+        except json.JSONDecodeError:
+            continue
+        candidates.append(stripped[start : start + end])
+    return candidates
+
+
 def build_prediction_result(
     *,
     index: int,
     record: SFTRecord,
     raw_output: str,
 ) -> PredictionResult:
-    candidate = extract_json_candidate(raw_output)
     parsed: OperationPlan | None = None
     error: str | None = None
-    try:
-        parsed = parse_operation_json(candidate)
-    except ValueError as exc:
-        error = str(exc)
+    candidates = extract_json_candidates(raw_output) or [extract_json_candidate(raw_output)]
+    for candidate in candidates:
+        try:
+            parsed = parse_operation_json(candidate)
+            error = None
+            break
+        except ValueError as exc:
+            error = str(exc)
 
     return PredictionResult(
         index=index,
@@ -135,11 +165,8 @@ def evaluate_predictions(results: list[PredictionResult]) -> EvaluationSummary:
     exact_match = 0
 
     for result in results:
-        try:
-            json.loads(extract_json_candidate(result.raw_output))
+        if extract_json_candidates(result.raw_output):
             json_parse_count += 1
-        except json.JSONDecodeError:
-            pass
 
         if result.parsed is None:
             continue

@@ -28,6 +28,7 @@ def main() -> int:
         print(f"model: {settings.model.model_name_or_path}")
         print(f"train records: {len(train_records)}")
         print(f"valid records: {len(valid_records)}")
+        print(f"max_steps: {settings.training.max_steps}")
         print(f"output_dir: {_resolve_path(settings.training.output_dir)}")
         print(f"adapter_output_dir: {_resolve_path(settings.training.adapter_output_dir)}")
         return 0
@@ -39,7 +40,7 @@ def main() -> int:
 def _train(settings: QLoRASettings) -> None:
     try:
         import torch  # type: ignore[import-not-found]
-        from datasets import load_dataset  # type: ignore[import-not-found]
+        from datasets import load_dataset  # type: ignore[import-not-found,import-untyped]
         from peft import LoraConfig  # type: ignore[import-not-found]
         from transformers import (  # type: ignore[import-not-found]
             AutoModelForCausalLM,
@@ -92,6 +93,7 @@ def _train(settings: QLoRASettings) -> None:
     dataset = load_dataset("json", data_files=data_files)
     sft_config = SFTConfig(
         output_dir=str(_resolve_path(settings.training.output_dir)),
+        max_steps=settings.training.max_steps,
         num_train_epochs=settings.training.num_train_epochs,
         per_device_train_batch_size=settings.training.per_device_train_batch_size,
         gradient_accumulation_steps=settings.training.gradient_accumulation_steps,

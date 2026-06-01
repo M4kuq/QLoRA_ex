@@ -48,6 +48,7 @@ class TrainingSettings(BaseModel):
 
     output_dir: Path = Path("outputs/qwen35-4b-qlora")
     adapter_output_dir: Path = Path("adapters/qwen35-4b-json-plan")
+    max_steps: int = Field(default=-1, ge=-1)
     num_train_epochs: float = Field(default=2, gt=0)
     per_device_train_batch_size: int = Field(default=1, ge=1)
     gradient_accumulation_steps: int = Field(default=8, ge=1)
