@@ -10,6 +10,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from finetune_lab.evaluator import load_sft_records  # noqa: E402
 from finetune_lab.training_config import QLoRASettings, load_qlora_settings  # noqa: E402
+from finetune_lab.training_data import to_prompt_completion  # noqa: E402
 
 
 def main() -> int:
@@ -28,6 +29,7 @@ def main() -> int:
         print(f"model: {settings.model.model_name_or_path}")
         print(f"train records: {len(train_records)}")
         print(f"valid records: {len(valid_records)}")
+        print(f"loss_mode: {settings.training.loss_mode}")
         print(f"max_steps: {settings.training.max_steps}")
         print(f"output_dir: {_resolve_path(settings.training.output_dir)}")
         print(f"adapter_output_dir: {_resolve_path(settings.training.adapter_output_dir)}")
@@ -91,6 +93,11 @@ def _train(settings: QLoRASettings) -> None:
         "validation": str(_resolve_path(settings.dataset.valid_path)),
     }
     dataset = load_dataset("json", data_files=data_files)
+    if settings.training.loss_mode == "completion_only":
+        dataset = dataset.map(
+            to_prompt_completion,
+            remove_columns=dataset["train"].column_names,
+        )
     sft_config = SFTConfig(
         output_dir=str(_resolve_path(settings.training.output_dir)),
         max_steps=settings.training.max_steps,
@@ -106,6 +113,8 @@ def _train(settings: QLoRASettings) -> None:
         report_to=settings.training.report_to,
         gradient_checkpointing=settings.training.gradient_checkpointing,
         max_length=settings.dataset.max_length,
+        completion_only_loss=settings.training.loss_mode == "completion_only",
+        assistant_only_loss=settings.training.loss_mode == "assistant_only",
     )
     trainer = SFTTrainer(
         model=model,

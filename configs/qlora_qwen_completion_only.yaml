@@ -1,0 +1,41 @@
+model:
+  model_name_or_path: Qwen/Qwen3.5-4B
+  trust_remote_code: true
+  torch_dtype: bfloat16
+  device_map: auto
+
+dataset:
+  train_path: data/generated/train.jsonl
+  valid_path: data/generated/valid.jsonl
+  max_length: 1024
+
+lora:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules: all-linear
+  bias: none
+  task_type: CAUSAL_LM
+
+quantization:
+  load_in_4bit: true
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_compute_dtype: bfloat16
+
+training:
+  output_dir: outputs/qwen35-4b-qlora-completion-only
+  adapter_output_dir: adapters/qwen35-4b-json-plan-completion-only
+  loss_mode: completion_only
+  max_steps: 100
+  num_train_epochs: 2
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8
+  learning_rate: 0.0002
+  warmup_ratio: 0.03
+  logging_steps: 10
+  save_steps: 100
+  eval_steps: 100
+  optim: paged_adamw_8bit
+  report_to: none
+  gradient_checkpointing: true
