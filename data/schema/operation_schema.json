@@ -1,0 +1,193 @@
+{
+  "$defs": {
+    "OperationFilters": {
+      "additionalProperties": false,
+      "description": "Allowed filter fields for safe read-only operation plans.",
+      "properties": {
+        "project": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "enum": [
+                "todo",
+                "in_progress",
+                "done",
+                "not_done",
+                "review_waiting",
+                "archived",
+                "not_archived",
+                "failed",
+                "succeeded"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status"
+        },
+        "assignee": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assignee"
+        },
+        "priority": {
+          "anyOf": [
+            {
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "urgent"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Priority"
+        },
+        "due": {
+          "anyOf": [
+            {
+              "enum": [
+                "overdue",
+                "today",
+                "tomorrow",
+                "this_week",
+                "next_week",
+                "none"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Due"
+        },
+        "created": {
+          "anyOf": [
+            {
+              "enum": [
+                "yesterday",
+                "today",
+                "this_week",
+                "last_week"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Created"
+        },
+        "score_lt": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score Lt"
+        }
+      },
+      "title": "OperationFilters",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Validated JSON operation plan emitted by the model.",
+  "properties": {
+    "intent": {
+      "enum": [
+        "search_tasks",
+        "search_projects",
+        "search_documents",
+        "search_jobs",
+        "search_evaluation_runs"
+      ],
+      "title": "Intent",
+      "type": "string"
+    },
+    "target": {
+      "enum": [
+        "tasks",
+        "projects",
+        "documents",
+        "jobs",
+        "evaluation_runs"
+      ],
+      "title": "Target",
+      "type": "string"
+    },
+    "filters": {
+      "$ref": "#/$defs/OperationFilters"
+    },
+    "sort": {
+      "items": {
+        "enum": [
+          "due_date_asc",
+          "due_date_desc",
+          "priority_desc",
+          "priority_asc",
+          "created_at_desc",
+          "created_at_asc",
+          "score_asc",
+          "score_desc"
+        ],
+        "type": "string"
+      },
+      "maxItems": 3,
+      "title": "Sort",
+      "type": "array"
+    },
+    "limit": {
+      "default": 20,
+      "maximum": 100,
+      "minimum": 1,
+      "title": "Limit",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "intent",
+    "target"
+  ],
+  "title": "OperationPlan",
+  "type": "object"
+}
