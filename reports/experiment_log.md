@@ -66,3 +66,43 @@ The adapter and checkpoint files are intentionally not tracked by Git.
 - Evaluate the adapter on the full 200-example test split.
 - Improve training so only assistant completion tokens contribute to the loss.
 - Add stricter generation settings or stop sequences to reduce repeated chat fragments.
+
+## 2026-06-01: Full 200-example adapter evaluation
+
+The checkpoint-100 adapter was evaluated on the full `data/generated/test.jsonl` split.
+
+| metric | value |
+| --- | ---: |
+| total | 200 |
+| json_parse_rate | 0.9700 |
+| schema_valid_rate | 0.9450 |
+| intent_accuracy | 0.8600 |
+| target_accuracy | 0.8600 |
+| filter_exact_match_rate | 0.5950 |
+| filter_key_precision | 0.8254 |
+| filter_key_recall | 0.7594 |
+| sort_accuracy | 0.7700 |
+| limit_accuracy | 0.6050 |
+| exact_match_rate | 0.3300 |
+
+### Error Pattern Summary
+
+- 11 / 200 outputs could not be parsed into a valid `OperationPlan`.
+- 66 / 200 outputs were exact matches.
+- Most common target/intent confusion: `search_projects` was predicted as `search_tasks` 7 times.
+- Most common sort confusion: `created_at_asc` was predicted as `created_at_desc` 8 times.
+- Most common limit error: expected `20`, predicted `10` 36 times.
+- Most common missing filters: `due` 27 times, `created` 13 times, `priority` 12 times.
+
+### Interpretation
+
+This is a clear improvement over LM Studio base and prompt-only baselines. The adapter learned
+the JSON shape and most task routing behavior, but is not yet production-grade because exact
+filter and limit extraction still fail often enough to change query results.
+
+### Recommended Next Improvements
+
+- Train with assistant-only completion loss to avoid learning user/system text continuation.
+- Add more contrastive examples for `projects` versus `tasks`.
+- Oversample `limit` values and date bucket filters such as `due` and `created`.
+- Add targeted evaluation slices for sort direction and limit extraction.
