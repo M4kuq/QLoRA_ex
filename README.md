@@ -138,10 +138,16 @@ base model評価を実行できます。
 python scripts/evaluate_lmstudio.py --model qwen3.5:4b --limit 20
 ```
 
+prompt-only baselineを測る場合:
+
+```powershell
+python scripts/evaluate_lmstudio.py --model qwen3.5:4b --prompt-mode prompt-only --limit 20
+```
+
 接続せずに最初のプロンプトだけ確認する場合:
 
 ```powershell
-python scripts/evaluate_lmstudio.py --dry-run --limit 1
+python scripts/evaluate_lmstudio.py --dry-run --prompt-mode prompt-only --limit 1
 ```
 
 ## 実験結果の記録場所
