@@ -106,3 +106,54 @@ filter and limit extraction still fail often enough to change query results.
 - Add more contrastive examples for `projects` versus `tasks`.
 - Oversample `limit` values and date bucket filters such as `due` and `created`.
 - Add targeted evaluation slices for sort direction and limit extraction.
+
+## 2026-06-01: Completion-only loss adapter evaluation
+
+The previous checkpoint-100 adapter was kept as a Git tag and a local adapter backup:
+
+```text
+git tag: qlora-checkpoint100-full-seq
+local backup: adapters/backups/qwen35-4b-json-plan-checkpoint100-full-seq-20260601
+```
+
+A second 100-step QLoRA run was trained with `loss_mode: completion_only`:
+
+```text
+python scripts/train_qlora.py --config configs/qlora_qwen_completion_only.yaml
+```
+
+The trained adapter was saved to:
+
+```text
+adapters/qwen35-4b-json-plan-completion-only
+```
+
+It was evaluated on the full `data/generated/test.jsonl` split.
+
+| metric | full-sequence checkpoint-100 | completion-only checkpoint-100 |
+| --- | ---: | ---: |
+| total | 200 | 200 |
+| json_parse_rate | 0.9700 | 0.9550 |
+| schema_valid_rate | 0.9450 | 0.7650 |
+| intent_accuracy | 0.8600 | 0.7650 |
+| target_accuracy | 0.8600 | 0.7650 |
+| filter_exact_match_rate | 0.5950 | 0.7100 |
+| filter_key_precision | 0.8254 | 0.7429 |
+| filter_key_recall | 0.7594 | 0.7396 |
+| sort_accuracy | 0.7700 | 0.7350 |
+| limit_accuracy | 0.6050 | 0.5950 |
+| exact_match_rate | 0.3300 | 0.5300 |
+
+### Interpretation
+
+Completion-only loss improved exact match from 33.0% to 53.0%, mainly because more successful
+responses match the full expected JSON exactly. However, schema validity dropped from 94.5% to
+76.5% because the model more often generated explanatory text before JSON. During training, TRL
+also emitted repeated prompt/completion tokenization mismatch warnings, so this run should be
+treated as promising but not clean.
+
+### Next Step
+
+Try `loss_mode: assistant_only` with the original conversational `messages` dataset. That should
+avoid the prompt/completion conversion path that produced tokenization mismatch warnings while
+still masking user/system tokens out of the loss.
