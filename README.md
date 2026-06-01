@@ -109,6 +109,25 @@ python scripts/validate_dataset.py
 python scripts/validate_dataset.py data/generated/train.jsonl data/generated/valid.jsonl data/generated/test.jsonl
 ```
 
+## QLoRA学習
+
+学習設定は `configs/qlora_qwen.yaml` に置いています。まずは重い学習を始めずに、
+設定とデータ件数だけ確認します。
+
+```powershell
+python scripts/train_qlora.py --dry-run
+```
+
+実際に学習する場合は、CUDAが使えるLinux / WSL2 / Colab環境で学習用依存関係を入れてから
+実行します。
+
+```powershell
+python -m pip install -e ".[train]"
+python scripts/train_qlora.py --config configs/qlora_qwen.yaml
+```
+
+学習済みadapterやcheckpointは `.gitignore` の対象です。
+
 ## テスト
 
 ```powershell
