@@ -16,7 +16,7 @@ from finetune_lab.evaluator import (  # noqa: E402
 )
 from finetune_lab.lmstudio_client import LMStudioClient, LMStudioConfig  # noqa: E402
 from finetune_lab.prompts import PromptMode, build_prompt_messages  # noqa: E402
-from finetune_lab.reporting import write_evaluation_report  # noqa: E402
+from finetune_lab.reporting import write_evaluation_report, write_summary_json  # noqa: E402
 from finetune_lab.schemas import SFTRecord  # noqa: E402
 
 
@@ -25,6 +25,7 @@ def main() -> int:
     parser.add_argument("--dataset", type=Path, default=ROOT / "data" / "generated" / "test.jsonl")
     parser.add_argument("--output", type=Path, default=ROOT / "outputs" / "lmstudio_base.jsonl")
     parser.add_argument("--report", type=Path, default=ROOT / "reports" / "eval_report.md")
+    parser.add_argument("--summary-output", type=Path, default=None)
     parser.add_argument("--base-url", default="http://localhost:1234/v1")
     parser.add_argument("--model", default="qwen3.5:4b")
     parser.add_argument("--prompt-mode", choices=["base", "prompt-only"], default="base")
@@ -59,23 +60,33 @@ def main() -> int:
 
     summary = evaluate_predictions(results)
     write_prediction_results(results, args.output)
+    summary_output = args.summary_output or args.output.with_suffix(".summary.json")
     failures = [
         result for result in results if result.parsed is None or result.parsed != result.gold
     ]
+    metadata = {
+        "model": args.model,
+        "base_url": args.base_url,
+        "dataset": str(args.dataset),
+        "predictions": str(args.output),
+        "prompt_mode": prompt_mode,
+    }
     write_evaluation_report(
         path=args.report,
         title=f"LM Studio Evaluation ({prompt_mode})",
         summary=summary,
-        metadata={
-            "model": args.model,
-            "base_url": args.base_url,
-            "dataset": str(args.dataset),
-            "predictions": str(args.output),
-        },
+        metadata=metadata,
         failures=failures,
+    )
+    write_summary_json(
+        path=summary_output,
+        name=f"lmstudio-{prompt_mode}",
+        summary=summary,
+        metadata=metadata,
     )
     print(summary.as_dict())
     print(f"predictions: {args.output}")
+    print(f"summary: {summary_output}")
     print(f"report: {args.report}")
     return 0
 

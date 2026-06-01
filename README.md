@@ -128,6 +128,19 @@ python scripts/train_qlora.py --config configs/qlora_qwen.yaml
 
 学習済みadapterやcheckpointは `.gitignore` の対象です。
 
+学習後adapterの評価は、同じtestデータで実行します。
+
+```powershell
+python scripts/evaluate_adapter.py --dry-run
+python scripts/evaluate_adapter.py --config configs/qlora_qwen.yaml
+```
+
+各評価スクリプトが出力する `*.summary.json` を比較表にまとめます。
+
+```powershell
+python scripts/compare_evaluations.py outputs/lmstudio_base.summary.json outputs/adapter_eval.summary.json
+```
+
 ## テスト
 
 ```powershell
